@@ -1,3 +1,5 @@
+*Note: This fork removes all logging so pywebcopy doesn't screw with your own project's logging setup if this is used as an import.*
+
 # PyWebCopy &copy; 6
 
 [![PyPI](https://img.shields.io/pypi/v/pywebcopy.svg)](https://pypi.org/project/pywebcopy/)
