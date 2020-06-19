@@ -44,8 +44,6 @@ __email__ = 'rajatomar788@gmail.com'
 __license__ = 'Apache License 2.0'
 __version__ = '6.3.0'
 
-import logging
-
 from .configs import config, SESSION
 from .parsers import Parser, MultiParser
 from .webpage import WebPage
@@ -60,15 +58,3 @@ __all__ = [
     __author__, __email__,
     __license__, __version__,
 ]
-
-#: logging optimisations
-logging.logThreads = 0
-logging.logProcesses = 0
-logging._srcfile = None
-c_handler = logging.StreamHandler()
-logging.basicConfig(
-    level=logging.DEBUG,
-    handlers=[c_handler],
-    format='%(name)-10s - %(levelname)-8s - %(message)s'
-)
-c_handler.setLevel(logging.INFO)

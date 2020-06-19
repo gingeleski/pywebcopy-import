@@ -9,7 +9,6 @@ Asset elements of a web page.
 """
 
 import errno
-import logging
 import os.path
 from io import BytesIO
 from datetime import datetime
@@ -25,8 +24,6 @@ from .globals import CSS_IMPORTS_RE, CSS_URLS_RE, POOL_LIMIT, MARK, __version__,
 from .urls import URLTransformer, relate
 
 __all__ = ['TagBase', 'AnchorTag', 'ImgTag', 'ScriptTag', 'LinkTag', '_ElementFactory']
-
-LOGGER = logging.getLogger('elements')
 
 
 class FileMixin(URLTransformer):
@@ -94,7 +91,6 @@ class FileMixin(URLTransformer):
 
         if os.path.exists(file_path):
             if not config['over_write']:
-                LOGGER.info("File already exists at location: %r" % file_path)
                 return
         else:
             #: Make the directories
@@ -108,9 +104,6 @@ class FileMixin(URLTransformer):
         req.raw.decode_content = True
 
         if req is None or not req.ok:
-            LOGGER.error(
-                'Failed to load the content of file %s from %s' % (file_path, url)
-            )
             return
 
         #: A dynamic file type check is required to take in context of
@@ -135,25 +128,20 @@ class FileMixin(URLTransformer):
                     file_ext = ext
                     break
             else:
-                LOGGER.error("File of type %r at url %r is not allowed "
-                             "to be downloaded!" % (file_ext, url))
                 return
 
         try:
             # case the function will catch it and log it then return None
-            LOGGER.info("Writing file at location %s" % file_path)
             with open(file_path, 'wb') as f:
                 #: Actual downloading
                 copyfileobj(req.raw, f)
                 f.write(self._watermark(url))
         except OSError:
-            LOGGER.critical("Download failed for the file of "
-                            "type %s to location %s" % (file_ext, file_path))
+            pass
         except Exception as e:
-            LOGGER.critical(e)
+            pass
         else:
-            LOGGER.info('File of type %s written successfully '
-                        'to %s' % (file_ext, file_path))
+            pass
 
     def write_file(self, file_like_object):
         """
@@ -181,7 +169,6 @@ class FileMixin(URLTransformer):
 
         if os.path.exists(file_path):
             if not config['over_write']:
-                LOGGER.info("File already exists at location: %r" % file_path)
                 return
         else:
             #: Make the directories
@@ -192,24 +179,20 @@ class FileMixin(URLTransformer):
                     pass
 
         if not is_allowed(file_ext):
-            LOGGER.error("File of type %r at url %r is not allowed to be "
-                         "downloaded!" % (file_ext, url))
             return
 
         try:
             # case the function will catch it and log it then return None
-            LOGGER.info("Writing file at location %s" % file_path)
             with open(file_path, 'wb') as f:
                 #: Actual downloading
                 copyfileobj(file_like_object, f)
                 f.write(self._watermark(url))
         except OSError:
-            LOGGER.exception("Download failed for the file of type %s to "
-                             "location %s" % (file_ext, file_path), exc_info=True)
+            pass
         except Exception as e:
-            LOGGER.critical(e)
+            pass
         else:
-            LOGGER.info('File of type %s written successfully to %s' % (file_ext, file_path))
+            pass
 
 
 class TagBase(FileMixin):
@@ -305,7 +288,6 @@ class LinkTag(TagBase):
         with POOL_LIMIT:
             if os.path.exists(self.file_path):
                 if not config['over_write']:
-                    LOGGER.info("File already exists at location: [%r]" % self.file_path)
                     return
             # LinkTags can also be specified for elements like favicon etc.
             # Thus a check is necessary to validate it is a proper css file or not.
@@ -317,7 +299,6 @@ class LinkTag(TagBase):
 
             # if some error occurs
             if not req or not req.ok:
-                LOGGER.error("URL returned an unknown response: [%s]" % self.url)
                 return
 
             # Try to avoid pulling the contents in the ram
@@ -329,10 +310,6 @@ class LinkTag(TagBase):
             # the regex matches all those with double mix-match quotes and normal ones
             # all the linked files will be saved and file paths would be replaced accordingly
             contents = self.replace_urls(req.content, self.repl)
-
-            # log amount of links found
-            LOGGER.info('[%d] CSS linked files are found in file [%s]'
-                        % (len(self._stack), self.file_path))
 
             # Save the content
             self.write_file(contents)
@@ -422,15 +399,7 @@ class _ElementFactory(object):
 
     def make_element(self, elem, attr, url, pos):
 
-        LOGGER.debug(
-            "Generating element for tag <%s>:[%s] [url] <%s> [attr] <%s> [pos] <%s>"
-            % (elem.tag, elem, url, attr, pos)
-        )
-
-        if self._validate_url(url):
-            LOGGER.debug("Url was valid: [%s]" % url)
-        else:
-            LOGGER.debug('Url was not valid: [%s]' % url)
+        if not self._validate_url(url):
             return
 
         utx = self._get_utx()
@@ -475,7 +444,6 @@ class _ElementFactory(object):
                 new = cur[:pos] + rel_path + cur[pos + len(url):]
             elem.set(attr, new)
 
-        LOGGER.debug("Remapped url [%s] to the path [%s]" % (url, rel_path))
         return obj
 
     def register_tag_handler(self, tag, handler):

@@ -8,7 +8,6 @@ Parses urls.
 
 """
 
-import logging
 import hashlib
 import itertools
 import os
@@ -29,9 +28,6 @@ from .globals import (
 )
 
 __all__ = ['URLTransformer', 'filename_present', 'url2path', 'relate']
-
-
-LOGGER = logging.getLogger('urls')
 
 
 def filename_present(url):
@@ -81,7 +77,6 @@ class URLTransformer(object):
         obj.__init__(*args, **kwargs)
         # using it here instead of __init__ will get the subclasses
         # attribute overrides correct
-        LOGGER.debug('Making new <UrlTransformer> with values: ' + str(obj))
         return obj
 
     def __init__(self, url, base_url=None, base_path=None, default_fn=None):

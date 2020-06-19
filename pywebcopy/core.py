@@ -10,7 +10,6 @@ Core functionality of the pywebcopy engine.
 """
 from __future__ import absolute_import
 
-import logging
 import os
 import shutil
 import zipfile
@@ -19,9 +18,6 @@ import threading
 
 from .configs import config, SESSION
 from .globals import MARK, __version__, lru_cache
-
-
-LOGGER = logging.getLogger('core')
 
 
 def zip_project(timeout=10):
@@ -51,18 +47,14 @@ def zip_project(timeout=10):
                     new_fn = os.path.join(folder, f)
                     archive.write(new_fn, new_fn[len(config['project_folder']):])
                 except ValueError:
-                    LOGGER.error("Attempt to use ZIP archive that was already closed")
+                    continue
                 except RuntimeError:
-                    LOGGER.exception("Failed to add file to archive file %s" % f, exc_info=True)
-
-    LOGGER.info('Saved the Project as ZIP archive at %s' % (config['project_folder'] + '.zip'))
+                    continue
 
     # Project folder can be automatically deleted after making zip file from it
     # this is True by default and will delete the complete project folder
     if config['delete_project_folder']:
         shutil.rmtree(config['project_folder'])
-
-    LOGGER.info("Downloaded Contents Size :: {} KB's".format(getattr(SESSION, '_bytes')//1024))
 
     return zip_fn
 
@@ -151,7 +143,6 @@ def zip_project(timeout=10):
 #         config['download_size'] += int(resp.headers.get('content-length', 0))
 #
 #     except HTTPError as err:
-#         LOGGER.error(err)
 #
 #         # try to get the default response returned by the `requests`
 #         resp = err.response
@@ -161,7 +152,6 @@ def zip_project(timeout=10):
 #             resp.request = err.request
 #
 #     except ConnectionError:    # Catches any other exception raised by `requests`
-#         LOGGER.error("Failed to access url at address %s" % url)
 #         resp = _dummy_resp()
 #
 #     return resp
@@ -222,7 +212,6 @@ def is_allowed(ext):
 #     _file_ext = '.' + location.rsplit('.', 1)[1].lower().strip()
 #
 #     if not is_allowed(_file_ext):
-#         LOGGER.critical('File ext %r is not allowed for file at %r' % (_file_ext, content_url or location))
 #         return
 #
 #     # The file path provided can already be existing so only overwrite the files
@@ -230,42 +219,31 @@ def is_allowed(ext):
 #     if os.path.exists(location):
 #
 #         if not config['over_write']:
-#             LOGGER.debug('File already exists at the location %s' % location)
 #             return location
 #
 #         else:
 #             os.remove(location)
-#             LOGGER.info('ReDownloading the file of type %s to %s' % (_file_ext, location))
-#     else:
-#         LOGGER.info('Downloading a new file of type %s to %s' % (_file_ext, location))
 #
 #     # Contents of the files can be supplied or filled by a content url
 #     # function we go online to download content from content url
 #     if not content and content_url is not None:
 #
-#         LOGGER.info('Downloading content of file %s from %s' % (location, content_url))
-#
 #         req = get(content_url, stream=True)
 #         # The file may not be available so will raise an error which will be caught by
 #         # except block an will return None
 #         if req is None or not req.ok:
-#             LOGGER.error('Failed to load the content of file %s from %s' % (location, content_url))
 #             return
 #
 #     try:
 #         # Files can throw an IOError or similar when failed to open or write in that
-#         LOGGER.debug("Making path for the file at location %s" % location)
 #         if not os.path.exists(os.path.dirname(location)):
 #             os.make dirs(os.path.dirname(location))
 #
 #     except OSError as e:
-#         LOGGER.critical(e)
-#         LOGGER.critical("Failed to create path for the file of type %s to location %s" % (_file_ext, location))
 #         return
 #
 #     try:
 #         # case the function will catch it and log it then return None
-#         LOGGER.info("Writing file at location %s" % location)
 #
 #         if isinstance(req, Response):
 #             with open(location, 'wb') as f:
@@ -278,9 +256,6 @@ def is_allowed(ext):
 #                 f.write(_watermark(content_url or location))
 #
 #     except Exception as e:
-#         LOGGER.critical(e)
-#         LOGGER.critical("Download failed for the file of type %s to location %s" % (_file_ext, location))
 #         return
 #     else:
-#         LOGGER.info('File of type %s written successfully to %s' % (_file_ext, location))
 #         return location

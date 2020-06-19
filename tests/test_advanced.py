@@ -1,5 +1,4 @@
 import io
-import logging
 import os
 import shutil
 import tempfile
@@ -16,7 +15,6 @@ import pywebcopy.webpage as wp
 import pywebcopy.crawler as cr
 
 # import pywebcopy.compat as compat
-logging.disable(logging.CRITICAL)
 
 html = """
 <!DOCTYPE html>

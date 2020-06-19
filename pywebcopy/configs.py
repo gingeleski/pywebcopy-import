@@ -7,7 +7,6 @@ pywebcopy.config
 Modifies the behaviour of pywebcopy.
 
 """
-import logging
 import os
 from io import BytesIO
 from six.moves import UserDict
@@ -20,9 +19,6 @@ from .globals import safe_file_exts, safe_http_headers
 from .structures import RobotsTxtParser
 
 __all__ = ['default_config', 'config', 'SESSION', 'AccessAwareSession']
-
-
-LOGGER = logging.getLogger(__name__)
 
 
 default_config = {
@@ -136,11 +132,6 @@ class ConfigHandler(UserDict):
         if not os.path.exists(norm_p):
             os.makedirs(norm_p)
 
-        # Console loggers (StreamHandlers) levels would be tuned
-        if self.get('debug') is True:
-            for handler in logging.root.handlers:
-                if isinstance(handler, logging.StreamHandler):
-                    handler.setLevel(logging.DEBUG)
 
     def setup_config(self, project_url=None, project_folder=None, project_name=None,
                      over_write=False, bypass_robots=False, zip_project_folder=True,
@@ -171,9 +162,6 @@ class ConfigHandler(UserDict):
             project_name = urlparse(project_url).hostname
 
         self.setup_paths(project_folder, project_name)
-
-        #: Log this new configuration to the log file for debug purposes
-        LOGGER.debug(str(dict(self)))
 
         #: Updates the headers of the requests object, it is set to
         #: reflect this package as a copy bot
@@ -221,7 +209,6 @@ class AccessAwareSession(requests.Session, RobotsTxtParser):
         try:
             resp = self.get(url, **kwargs)
         except requests.exceptions.RequestException as err:
-            LOGGER.error("Failed to access url at address [%s] exception \n %s" % (url, err))
             resp = self._dummy_resp(err)
         return resp
 
@@ -238,7 +225,6 @@ class AccessAwareSession(requests.Session, RobotsTxtParser):
 
     def log_response(self, resp, **_kwargs):
         """:type resp: requests.Response"""
-        LOGGER.info('Got response %r from %s', resp.status_code, resp.url)
         self._bytes += int(resp.headers.get('Content-length', 0))
 
     def _get(self, url, **kwargs):
@@ -267,10 +253,8 @@ class AccessAwareSession(requests.Session, RobotsTxtParser):
         else:
             if self._bypass:
                 # if explicitly declared to bypass robots then the restriction will be ignored
-                LOGGER.warning("Forcefully Accessing restricted website part %s" % url)
                 return True
             else:
-                LOGGER.error("Website doesn't allow access to the url %s" % url)
                 return False
 
     @staticmethod
