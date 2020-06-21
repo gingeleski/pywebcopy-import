@@ -219,10 +219,11 @@ class WebPage(Parser, _ElementFactory):
         elms = list(self.elements)
 
         for elem in elms:
-            with POOL_LIMIT:
-                t = threading.Thread(name=repr(elem), target=elem.run)
-                t.start()
-                self._threads.append(t)
+            elem.run()
+            #with POOL_LIMIT:
+            #    t = threading.Thread(name=repr(elem), target=elem.run)
+            #    t.start()
+            #    self._threads.append(t)
 
     def save_html(self, file_name=None, raw_html=False):
         """Saves the html of the page to a default or specified file.
